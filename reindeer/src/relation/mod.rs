@@ -1,7 +1,7 @@
 mod descriptor;
 use crate::entity::{AsBytes, Entity};
 use crate::error::Result;
-use crate::{Error, ErrorKind};
+use crate::{bincode_deserialize, bincode_serialize, Error, ErrorKind};
 use serde_derive::{Deserialize, Serialize};
 use sled::Db;
 
@@ -387,7 +387,7 @@ impl Relation {
     ) -> Result<EntityRelations> {
         let tree = db.open_tree(Relation::tree_name(tree_name))?;
         match tree.get(e)? {
-            Some(relation_descriptor) => Ok(bincode::deserialize::<EntityRelations>(
+            Some(relation_descriptor) => Ok(bincode_deserialize::<EntityRelations>(
                 &relation_descriptor,
             )?),
             None => Ok(EntityRelations::default()),
@@ -404,7 +404,7 @@ impl Relation {
 
     fn save_descriptor_with_key<E: Entity>(e: &[u8], r_d: &EntityRelations, db: &Db) -> Result<()> {
         let tree = db.open_tree(Relation::tree_name(E::store_name()))?;
-        tree.insert(e, bincode::serialize(r_d)?)?;
+        tree.insert(e, bincode_serialize(r_d)?)?;
         Ok(())
     }
 
@@ -415,7 +415,7 @@ impl Relation {
         db: &Db,
     ) -> Result<()> {
         let tree = db.open_tree(Relation::tree_name(tree_name))?;
-        tree.insert(e, bincode::serialize(r_d)?)?;
+        tree.insert(e, bincode_serialize(r_d)?)?;
         Ok(())
     }
 

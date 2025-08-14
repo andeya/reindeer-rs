@@ -7,7 +7,7 @@ use std::{fs::File, mem::size_of};
 use crate::error::Result;
 use crate::import_export::JsonWrapper;
 use crate::relation::{DeletionBehaviour, EntityRelations, FamilyDescriptor, Relation};
-use crate::Error;
+use crate::{bincode_deserialize, bincode_serialize, Error};
 use serde::{de::DeserializeOwned, Serialize};
 use sled::{Batch, Db, IVec, Tree};
 
@@ -187,12 +187,12 @@ pub trait Entity: Serialize + DeserializeOwned {
 
     #[doc(hidden)]
     fn try_from_ivec(vec: IVec) -> Result<Self> {
-        Ok(bincode::deserialize::<Self>(vec.as_ref())?)
+        Ok(bincode_deserialize::<Self>(vec.as_ref())?)
     }
 
     #[doc(hidden)]
     fn try_into_ivec(&self) -> Result<IVec> {
-        Ok(IVec::from(bincode::serialize(self)?))
+        Ok(IVec::from(bincode_serialize(self)?))
     }
 
     /// Retrieves an entity instance given its key.
@@ -352,8 +352,8 @@ pub trait Entity: Serialize + DeserializeOwned {
     /// Gets all entities of a given store matching a condition materialized
     /// as a function returning a boolean
     ///
-    /// ⚠ This will effectively iterate over every entity in the store. 
-    /// Prefer [QueryBuilder](struct.QueryBuilder.html)'s [`get_with_filter`](struct.QueryBuilder.html#method.get_with_filter) 
+    /// ⚠ This will effectively iterate over every entity in the store.
+    /// Prefer [QueryBuilder](struct.QueryBuilder.html)'s [`get_with_filter`](struct.QueryBuilder.html#method.get_with_filter)
     /// if possible and combine it with a set of ids, a parent, etc to avoid iteration on the whole store.
     ///
     /// ### Example
@@ -409,7 +409,7 @@ pub trait Entity: Serialize + DeserializeOwned {
     /// my_struct.save(&db)?;
     /// ```
     fn save(&self, db: &Db) -> Result<()> {
-        Self::get_tree(db)?.insert(&self.get_key().as_bytes(), bincode::serialize(self)?)?;
+        Self::get_tree(db)?.insert(&self.get_key().as_bytes(), bincode_serialize(self)?)?;
         Ok(())
     }
 
@@ -533,12 +533,14 @@ pub trait Entity: Serialize + DeserializeOwned {
     }
 
     #[doc(hidden)]
-    fn bytes_to_u32( bytes : &[u8]) -> Result<u32> {
+    fn bytes_to_u32(bytes: &[u8]) -> Result<u32> {
         if bytes.len() >= 4 {
-            Ok(u32::from_be_bytes([bytes[0],bytes[1],bytes[2],bytes[3]]))
-        }
-        else {
-            Err(Error::new(crate::error::ErrorKind::IOError, "Cannot convert byte slice smaller than 4 bytes to integer.".to_string()))
+            Ok(u32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]))
+        } else {
+            Err(Error::new(
+                crate::error::ErrorKind::IOError,
+                "Cannot convert byte slice smaller than 4 bytes to integer.".to_string(),
+            ))
         }
     }
 
@@ -784,7 +786,6 @@ pub trait Entity: Serialize + DeserializeOwned {
         child: &mut E,
         db: &Db,
     ) -> Result<E::Key> {
-        
         let increment = match E::get_tree(db)?
             .scan_prefix(&self.get_key().as_bytes())
             .flatten()

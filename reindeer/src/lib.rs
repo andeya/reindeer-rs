@@ -38,6 +38,7 @@ mod error;
 mod import_export;
 mod query_builder;
 mod relation;
+
 pub use entity::AutoIncrementEntity;
 pub use entity::{AsBytes, Entity};
 pub use reindeer_macros::Entity;
@@ -53,6 +54,24 @@ pub use sled::open;
 /// `sled` database struct. It can be copied and used accross threads and is a central item to store entities. This is a re-export of `sled::Db`.
 ///
 pub use sled::Db;
+
+use bincode::{DefaultOptions, Options};
+
+fn bincode_serialize<S: ?Sized + serde::Serialize>(t: &S) -> bincode::Result<Vec<u8>> {
+    DefaultOptions::new()
+        .with_fixint_encoding()
+        .allow_trailing_bytes()
+        .with_big_endian()
+        .serialize(t)
+}
+
+fn bincode_deserialize<'a, T: serde::Deserialize<'a>>(bytes: &'a [u8]) -> bincode::Result<T> {
+    DefaultOptions::new()
+        .with_fixint_encoding()
+        .allow_trailing_bytes()
+        .with_big_endian()
+        .deserialize(bytes)
+}
 
 #[cfg(test)]
 mod test;
