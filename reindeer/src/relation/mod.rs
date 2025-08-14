@@ -5,8 +5,8 @@ use crate::{Error, ErrorKind};
 use serde_derive::{Deserialize, Serialize};
 use sled::Db;
 
+pub use self::descriptor::EntityRelations;
 pub use self::descriptor::FamilyDescriptor;
-pub use self::descriptor::{EntityRelations, RelationMap};
 
 pub struct Relation;
 
