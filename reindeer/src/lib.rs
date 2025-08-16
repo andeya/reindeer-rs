@@ -57,7 +57,7 @@ pub use sled::Db;
 
 use bincode::{DefaultOptions, Options};
 
-fn bincode_serialize<S: ?Sized + serde::Serialize>(t: &S) -> bincode::Result<Vec<u8>> {
+pub fn bincode_serialize<S: ?Sized + serde::Serialize>(t: &S) -> bincode::Result<Vec<u8>> {
     DefaultOptions::new()
         .with_fixint_encoding()
         .allow_trailing_bytes()
@@ -65,7 +65,7 @@ fn bincode_serialize<S: ?Sized + serde::Serialize>(t: &S) -> bincode::Result<Vec
         .serialize(t)
 }
 
-fn bincode_deserialize<'a, T: serde::Deserialize<'a>>(bytes: &'a [u8]) -> bincode::Result<T> {
+pub fn bincode_deserialize<'a, T: serde::Deserialize<'a>>(bytes: &'a [u8]) -> bincode::Result<T> {
     DefaultOptions::new()
         .with_fixint_encoding()
         .allow_trailing_bytes()
