@@ -53,7 +53,7 @@ pub use error::{Error, ErrorKind, Result};
 pub use sled::open;
 /// `sled` database struct. It can be copied and used accross threads and is a central item to store entities. This is a re-export of `sled::Db`.
 ///
-pub use sled::Db;
+pub use sled::{Config, Db};
 
 use bincode::{DefaultOptions, Options};
 
